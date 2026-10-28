@@ -28,7 +28,15 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float groundCheckRadius = 0.25f;
     [SerializeField] private LayerMask groundLayers;
 
+    [Header("Animation")]
+    [Tooltip("Check this if the roll frames are drawn rolling to the right.")]
+    [SerializeField] private bool spriteRollsRight = true;
+
+    private static readonly int RollSpeedHash = Animator.StringToHash("RollSpeed");
+
     private Rigidbody2D rb;
+    private Animator animator;
+    private SpriteRenderer spriteRenderer;
     private float baseGravityScale;
     private Vector2 moveInput;
     private bool isGrounded;
@@ -39,6 +47,8 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         baseGravityScale = rb.gravityScale;
     }
 
@@ -65,6 +75,25 @@ public class PlayerController : MonoBehaviour
 
         if (jumpAction.action.WasReleasedThisFrame())
             jumpCutRequested = true;
+
+        UpdateAnimation();
+    }
+
+    private void UpdateAnimation()
+    {
+        // Roll speed is always positive: direction is shown by flipping, not by playing backward
+        if (animator != null)
+        {
+            float speed01 = Mathf.Abs(rb.linearVelocity.x) / moveSpeed;
+            animator.SetFloat(RollSpeedHash, speed01);
+        }
+
+        // Flip horizontally based on input direction; keep last facing when the stick is released
+        if (spriteRenderer != null && Mathf.Abs(moveInput.x) > 0.1f)
+        {
+            bool movingLeft = moveInput.x < 0f;
+            spriteRenderer.flipX = spriteRollsRight ? movingLeft : !movingLeft;
+        }
     }
 
     private void FixedUpdate()
