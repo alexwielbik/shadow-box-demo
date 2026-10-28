@@ -36,7 +36,6 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody2D rb;
     private Animator animator;
-    private SpriteRenderer spriteRenderer;
     private float baseGravityScale;
     private Vector2 moveInput;
     private bool isGrounded;
@@ -48,7 +47,6 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
         baseGravityScale = rb.gravityScale;
     }
 
@@ -81,18 +79,22 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateAnimation()
     {
-        // Roll speed is always positive: direction is shown by flipping, not by playing backward
+        // Roll speed is always positive: direction is shown by mirroring, not by playing backward
         if (animator != null)
         {
             float speed01 = Mathf.Abs(rb.linearVelocity.x) / moveSpeed;
             animator.SetFloat(RollSpeedHash, speed01);
         }
 
-        // Flip horizontally based on input direction; keep last facing when the stick is released
-        if (spriteRenderer != null && Mathf.Abs(moveInput.x) > 0.1f)
+        // Mirror the object horizontally based on input direction; keep last facing when the stick is released
+        if (Mathf.Abs(moveInput.x) > 0.1f)
         {
             bool movingLeft = moveInput.x < 0f;
-            spriteRenderer.flipX = spriteRollsRight ? movingLeft : !movingLeft;
+            bool mirror = spriteRollsRight ? movingLeft : !movingLeft;
+
+            Vector3 s = transform.localScale;
+            s.x = Mathf.Abs(s.x) * (mirror ? -1f : 1f);
+            transform.localScale = s;
         }
     }
 
