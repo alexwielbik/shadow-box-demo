@@ -12,14 +12,17 @@ using UnityEngine;
 ///     the shadow and is NOT darkened.
 ///
 /// The strip is lined up with where this piece's inner edge appears on screen,
-/// so it starts exactly at the edge even with the perspective camera.
+/// so it starts exactly at the edge even with the perspective camera. Because that
+/// depends on where the camera is, the strip is rebuilt whenever the camera moves.
 ///
 /// The strip is regenerated automatically and never saved into the scene,
 /// so you only ever edit the settings on this component.
 ///
-/// Assumes the piece uses the built-in Quad mesh and that its parent (BorderFrame)
-/// has a scale of 1, which is how the Clock Room is set up.
+/// Assumes the piece uses the built-in Quad mesh and that its parent (if it has one)
+/// has a scale of 1. The pieces can sit under a plain empty object like "Borders",
+/// or at the root of the scene. They do not need to be attached to the camera.
 /// </summary>
+[DefaultExecutionOrder(100)] // run after CameraFollow, so we see the camera's final position this frame
 [ExecuteAlways]
 [DisallowMultipleComponent]
 public class BorderShadow : MonoBehaviour
@@ -67,6 +70,7 @@ public class BorderShadow : MonoBehaviour
     private Quaternion lastRotation;
     private Vector3 lastScale;
     private Vector3 lastReceiverPosition;
+    private Vector3 lastCameraPosition;
 
     private static Material fallbackMaterial;
 
@@ -105,10 +109,13 @@ public class BorderShadow : MonoBehaviour
         if (shadowObject == null) CreateShadowObject();
 
         Vector3 receiverPosition = receiver != null ? receiver.position : Vector3.zero;
+        Vector3 cameraPosition = GetCameraWorldPosition();
+
         if (transform.localPosition != lastPosition ||
             transform.localRotation != lastRotation ||
             transform.localScale != lastScale ||
-            receiverPosition != lastReceiverPosition)
+            receiverPosition != lastReceiverPosition ||
+            cameraPosition != lastCameraPosition)
         {
             dirty = true;
         }
@@ -124,7 +131,7 @@ public class BorderShadow : MonoBehaviour
         shadowObject.hideFlags = HideFlags.DontSave; // regenerated every time, never saved
         shadowObject.layer = gameObject.layer;
 
-        // Sibling of the piece (child of BorderFrame), so it follows the camera like the frame does
+        // Sibling of the piece (same parent), so it sits in the same space as the piece
         shadowObject.transform.SetParent(transform.parent, false);
         shadowObject.transform.localPosition = Vector3.zero;
         shadowObject.transform.localRotation = Quaternion.identity;
@@ -150,6 +157,7 @@ public class BorderShadow : MonoBehaviour
         lastRotation = transform.localRotation;
         lastScale = transform.localScale;
         lastReceiverPosition = receiver != null ? receiver.position : Vector3.zero;
+        lastCameraPosition = GetCameraWorldPosition();
 
         shadowRenderer.sharedMaterial = material != null ? material : GetFallbackMaterial();
 
@@ -168,7 +176,7 @@ public class BorderShadow : MonoBehaviour
                 edgeA = new Vector3(-0.5f, -0.5f, 0f); edgeB = new Vector3(0.5f, -0.5f, 0f); inwardAxis = Vector3.down; break;
         }
 
-        // Everything below is in the parent's (BorderFrame's) space, where the shadow mesh lives
+        // Everything below is in the parent's space, where the shadow mesh lives
         Vector3 a = ToParentSpace(edgeA);
         Vector3 b = ToParentSpace(edgeB);
 
@@ -235,7 +243,15 @@ public class BorderShadow : MonoBehaviour
                transform.localRotation * Vector3.Scale(transform.localScale, pieceLocalPoint);
     }
 
-    // The camera the frame is attached to, expressed in the parent's space
+    // The camera's position in world space (used to know when the camera has moved)
+    private Vector3 GetCameraWorldPosition()
+    {
+        Camera cam = GetComponentInParent<Camera>();
+        if (cam == null) cam = Camera.main;
+        return cam != null ? cam.transform.position : Vector3.zero;
+    }
+
+    // The camera expressed in the parent's space
     private Vector3 GetCameraPointInParentSpace()
     {
         Camera cam = GetComponentInParent<Camera>();
