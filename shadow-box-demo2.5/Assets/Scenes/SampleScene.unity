@@ -1989,7 +1989,7 @@ Rigidbody2D:
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: c1103ec2504052b498ecbb53a285eb96, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -2095,15 +2095,18 @@ MonoBehaviour:
   deceleration: 80
   airControl: 0.6
   jumpHeight: 3
+  timeToApex: 0.4
   coyoteTime: 0.1
   jumpBufferTime: 0.1
   jumpCutMultiplier: 0.5
-  fallGravityMultiplier: 1.8
+  fallGravityMultiplier: 1.5
+  maxFallSpeed: 18
   groundCheck: {fileID: 1067270877}
   groundCheckRadius: 0.25
   groundLayers:
     serializedVersion: 2
     m_Bits: 64
+  wallNormalThreshold: 0.7
   spriteRollsRight: 1
 --- !u!58 &1138264973
 CircleCollider2D:

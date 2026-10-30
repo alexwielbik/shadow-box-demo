@@ -16,17 +16,28 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float airControl = 0.6f;
 
     [Header("Jump")]
+    [Tooltip("How high a full (held) jump goes, in world units.")]
     [SerializeField] private float jumpHeight = 3f;
+    [Tooltip("Seconds to reach the top of a full jump. Lower = snappier, less floaty.")]
+    [SerializeField, Min(0.05f)] private float timeToApex = 0.38f;
     [SerializeField] private float coyoteTime = 0.1f;
     [SerializeField] private float jumpBufferTime = 0.1f;
     [Range(0f, 1f)]
     [SerializeField] private float jumpCutMultiplier = 0.5f;
-    [SerializeField] private float fallGravityMultiplier = 1.8f;
+    [Tooltip("Extra gravity while falling. 1 = same as rising.")]
+    [SerializeField] private float fallGravityMultiplier = 1.6f;
+    [Tooltip("Downward speed is capped here so long falls stay readable.")]
+    [SerializeField] private float maxFallSpeed = 18f;
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.25f;
     [SerializeField] private LayerMask groundLayers;
+
+    [Header("Wall Check")]
+    [Tooltip("How vertical a surface must be to count as a wall (1 = perfectly vertical).")]
+    [Range(0f, 1f)]
+    [SerializeField] private float wallNormalThreshold = 0.7f;
 
     [Header("Animation")]
     [Tooltip("Check this if the roll frames are drawn rolling to the right.")]
@@ -37,17 +48,39 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator;
     private float baseGravityScale;
+    private float jumpVelocity;
     private Vector2 moveInput;
     private bool isGrounded;
+    private bool touchingWallLeft;
+    private bool touchingWallRight;
     private float coyoteTimer;
     private float jumpBufferTimer;
     private bool jumpCutRequested;
+
+    private readonly ContactPoint2D[] contacts = new ContactPoint2D[8];
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        baseGravityScale = rb.gravityScale;
+        CalculateJumpPhysics();
+    }
+
+    // Lets you tweak jump values in Play mode and feel the change immediately
+    private void OnValidate()
+    {
+        if (rb != null) CalculateJumpPhysics();
+    }
+
+    // Derive gravity and launch speed from the designer-friendly height + time values:
+    //   gravity  = 2h / t^2
+    //   velocity = 2h / t
+    private void CalculateJumpPhysics()
+    {
+        float gravity = 2f * jumpHeight / (timeToApex * timeToApex);
+        jumpVelocity = 2f * jumpHeight / timeToApex;
+        baseGravityScale = gravity / Mathf.Abs(Physics2D.gravity.y);
+        rb.gravityScale = baseGravityScale;
     }
 
     private void OnEnable()
@@ -101,6 +134,7 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         CheckGround();
+        CheckWalls();
         HandleHorizontal();
         HandleJump();
         HandleGravity();
@@ -117,6 +151,22 @@ public class PlayerController : MonoBehaviour
             coyoteTimer -= Time.fixedDeltaTime;
     }
 
+    // Looks at everything the player is currently touching. A contact normal points
+    // from the surface toward the player, so a wall on our right has a normal pointing left.
+    private void CheckWalls()
+    {
+        touchingWallLeft = false;
+        touchingWallRight = false;
+
+        int count = rb.GetContacts(contacts);
+        for (int i = 0; i < count; i++)
+        {
+            Vector2 n = contacts[i].normal;
+            if (n.x <= -wallNormalThreshold) touchingWallRight = true;
+            else if (n.x >= wallNormalThreshold) touchingWallLeft = true;
+        }
+    }
+
     private void HandleHorizontal()
     {
         Vector2 v = rb.linearVelocity;
@@ -126,6 +176,12 @@ public class PlayerController : MonoBehaviour
         if (!isGrounded) rate *= airControl;
 
         v.x = Mathf.MoveTowards(v.x, targetX, rate * Time.fixedDeltaTime);
+
+        // Never push into a wall. With no sideways force there's nothing for
+        // friction to grab, so gravity takes over and the player slides down.
+        if (touchingWallRight && v.x > 0f) v.x = 0f;
+        if (touchingWallLeft && v.x < 0f) v.x = 0f;
+
         rb.linearVelocity = v;
     }
 
@@ -136,8 +192,7 @@ public class PlayerController : MonoBehaviour
         // Jump: buffered press + (grounded or within coyote window)
         if (jumpBufferTimer > 0f && coyoteTimer > 0f)
         {
-            float gravity = Mathf.Abs(Physics2D.gravity.y) * baseGravityScale;
-            v.y = Mathf.Sqrt(2f * gravity * jumpHeight);
+            v.y = jumpVelocity;
             jumpBufferTimer = 0f;
             coyoteTimer = 0f;
         }
@@ -154,10 +209,18 @@ public class PlayerController : MonoBehaviour
 
     private void HandleGravity()
     {
-        // Stronger gravity while falling for a snappier, less floaty arc
+        // Stronger gravity while falling for a snappier arc
         rb.gravityScale = rb.linearVelocity.y < 0f
             ? baseGravityScale * fallGravityMultiplier
             : baseGravityScale;
+
+        // Cap fall speed
+        Vector2 v = rb.linearVelocity;
+        if (v.y < -maxFallSpeed)
+        {
+            v.y = -maxFallSpeed;
+            rb.linearVelocity = v;
+        }
     }
 
     private void OnDrawGizmosSelected()
