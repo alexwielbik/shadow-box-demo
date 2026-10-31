@@ -299,6 +299,50 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Platform
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 606
+        width: 649
+        height: 80
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bbfe8a0033e4c8543885cea9a122beb3
+      internalID: 1480500681
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlatformSmall
+      rect:
+        serializedVersion: 2
+        x: 75
+        y: 434
+        width: 381
+        height: 81
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 55f452ce4b8b7174a97defd8edbfe91b
+      internalID: 1154586529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -322,6 +366,8 @@ TextureImporter:
       ForeGear: 344294355
       LargeStainglassBack: -569816240
       LargeStainglassFrame: -848479823
+      Platform: 1480500681
+      PlatformSmall: 1154586529
       SmallStainglassBack: -8787264852723620008
       SmallStainglassFrame: 1737313512
   mipmapLimitGroupName: 
