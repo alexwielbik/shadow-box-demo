@@ -308,7 +308,7 @@ TextureImporter:
         width: 649
         height: 80
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -330,7 +330,7 @@ TextureImporter:
         width: 381
         height: 81
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -339,6 +339,204 @@ TextureImporter:
       bones: []
       spriteID: 55f452ce4b8b7174a97defd8edbfe91b
       internalID: 1154586529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BackGear
+      rect:
+        serializedVersion: 2
+        x: 957
+        y: 722
+        width: 935
+        height: 929
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2acbd6ea6d8111340b172e6b22f20bea
+      internalID: 317562366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: clockHandBlue
+      rect:
+        serializedVersion: 2
+        x: 803
+        y: 1880
+        width: 101
+        height: 381
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 22188efb2b2eb3c4fa2bdb777fd188de
+      internalID: -289555348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ClockHandGrey
+      rect:
+        serializedVersion: 2
+        x: 697
+        y: 1880
+        width: 97
+        height: 380
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1d9669254ac1bd64180b6e17f2cf54ec
+      internalID: -1029815749
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SwitchPlatformGrey
+      rect:
+        serializedVersion: 2
+        x: 1290
+        y: 2159
+        width: 199
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d07549d02e203ca41aaedd93c26b0f87
+      internalID: 2134112698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SwitchPlatformGold
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 2155
+        width: 203
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d66e3713c679e054b8687bb9bf3b6a85
+      internalID: 501211353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SwitchPlatformBlue
+      rect:
+        serializedVersion: 2
+        x: 1781
+        y: 2156
+        width: 196
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 840785c5501719d45b9b5e8a81de07c4
+      internalID: -1672312620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SwitchLeverGrey
+      rect:
+        serializedVersion: 2
+        x: 1359
+        y: 1950
+        width: 58
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 220b26071f60afb4696e0757c7fc9321
+      internalID: 1860745209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SwitchLeverGold
+      rect:
+        serializedVersion: 2
+        x: 1612
+        y: 1949
+        width: 53
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fb64ea060e89d5e4aaf82566d50d8256
+      internalID: -1625289436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SwitchLeverBlue
+      rect:
+        serializedVersion: 2
+        x: 1842
+        y: 1946
+        width: 66
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3473ffb56f752d418974e4f0779eae1
+      internalID: -1760401356
       vertices: []
       indices: 
       edges: []
@@ -359,10 +557,12 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
+      BackGear: 317562366
       ClockFace: -1585605518
       ClockGear_1: -438637741
       ClockGear_2: 1454705904
       ClockHand: 791574087
+      ClockHandGrey: -1029815749
       ForeGear: 344294355
       LargeStainglassBack: -569816240
       LargeStainglassFrame: -848479823
@@ -370,6 +570,13 @@ TextureImporter:
       PlatformSmall: 1154586529
       SmallStainglassBack: -8787264852723620008
       SmallStainglassFrame: 1737313512
+      SwitchLeverBlue: -1760401356
+      SwitchLeverGold: -1625289436
+      SwitchLeverGrey: 1860745209
+      SwitchPlatformBlue: -1672312620
+      SwitchPlatformGold: 501211353
+      SwitchPlatformGrey: 2134112698
+      clockHandBlue: -289555348
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
