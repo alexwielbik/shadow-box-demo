@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// A pulley wheel with a chain draped over it and a counterweight on each end.
@@ -122,6 +123,7 @@ public class PulleyChainRig : MonoBehaviour
         rbLeft = SetUpBody(weightLeft);
         rbRight = SetUpBody(weightRight);
 
+        EnsureSortingGroup();
         SpawnLinks();
     }
 
@@ -151,6 +153,25 @@ public class PulleyChainRig : MonoBehaviour
             rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         }
         return rb;
+    }
+
+    // The links use sortingOrder (wheel - 1) to tuck behind the wheel. Without a
+    // Sorting Group that -1 is compared against the WHOLE scene, so every other
+    // transparent sprite at order 0 (e.g. the stained glass backs) draws on top of
+    // the links and tints them. A Sorting Group on the rig makes the rig sort as one
+    // unit by distance, and the -1 only matters inside the rig.
+    private void EnsureSortingGroup()
+    {
+        var group = GetComponent<SortingGroup>();
+        if (!group)
+        {
+            group = gameObject.AddComponent<SortingGroup>();
+            if (wheel)
+            {
+                group.sortingLayerID = wheel.sortingLayerID;
+                group.sortingOrder = wheel.sortingOrder;
+            }
+        }
     }
 
     private void SpawnLinks()

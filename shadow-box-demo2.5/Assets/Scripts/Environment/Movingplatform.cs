@@ -11,6 +11,8 @@ using UnityEngine;
 /// Uses a kinematic Rigidbody2D driven by velocity, so the player is pushed up correctly
 /// and PlayerController can read the platform's speed to ride along with it.
 /// </summary>
+// Run before PlayerController so the player reads this step's velocity, not last step's
+[DefaultExecutionOrder(-50)]
 [RequireComponent(typeof(Rigidbody2D))]
 public class MovingPlatform : MonoBehaviour
 {

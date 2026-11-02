@@ -39,6 +39,11 @@ public class PlayerController : MonoBehaviour
     [Range(0f, 1f)]
     [SerializeField] private float wallNormalThreshold = 0.7f;
 
+    [Header("Moving Platforms")]
+    [Tooltip("If the player gets knocked further than this from their spot on a platform " +
+             "(e.g. pushed by a wall), they take the new spot instead of snapping back.")]
+    [SerializeField] private float maxAnchorCorrection = 0.5f;
+
     [Header("Animation")]
     [Tooltip("Check this if the roll frames are drawn rolling to the right.")]
     [SerializeField] private bool spriteRollsRight = true;
@@ -63,6 +68,10 @@ public class PlayerController : MonoBehaviour
     private Vector2 groundVelocity;
     private readonly Collider2D[] groundHits = new Collider2D[4];
     private ContactFilter2D groundFilter;
+    private Rigidbody2D groundBody;      // the kinematic body we're standing on (null if none)
+    private Rigidbody2D anchorBody;      // the body we're currently locked to
+    private float anchorOffsetX;         // our X relative to anchorBody while locked
+    private bool anchored;
 
     private void Awake()
     {
@@ -124,7 +133,10 @@ public class PlayerController : MonoBehaviour
         // Roll speed is always positive: direction is shown by mirroring, not by playing backward
         if (animator != null)
         {
-            float speed01 = Mathf.Abs(rb.linearVelocity.x) / moveSpeed;
+            // Use speed relative to the ground we're on, so riding a moving platform
+            // while standing still doesn't play the roll (groundVelocity is 0 on static ground)
+            float relativeX = rb.linearVelocity.x - groundVelocity.x;
+            float speed01 = Mathf.Abs(relativeX) / moveSpeed;
             animator.SetFloat(RollSpeedHash, speed01);
         }
 
@@ -157,12 +169,14 @@ public class PlayerController : MonoBehaviour
 
         // If any of the ground we're touching is a moving (kinematic) body, ride along with it
         groundVelocity = Vector2.zero;
+        groundBody = null;
         for (int i = 0; i < hitCount; i++)
         {
             Rigidbody2D body = groundHits[i].attachedRigidbody;
             if (body != null && body != rb && body.bodyType == RigidbodyType2D.Kinematic)
             {
                 groundVelocity = body.linearVelocity;
+                groundBody = body;
                 break;
             }
         }
@@ -192,16 +206,55 @@ public class PlayerController : MonoBehaviour
     private void HandleHorizontal()
     {
         Vector2 v = rb.linearVelocity;
+        float dt = Time.fixedDeltaTime;
         float targetX = moveInput.x * moveSpeed;
+        bool hasInput = Mathf.Abs(targetX) > 0.01f;
 
-        float rate = Mathf.Abs(targetX) > 0.01f ? acceleration : deceleration;
+        float rate = hasInput ? acceleration : deceleration;
         if (!isGrounded) rate *= airControl;
 
         // Accelerate relative to the ground we're standing on (0 unless it's a moving platform).
         // Leaving the platform keeps its speed as momentum, which then eases off in the air.
         float relativeX = v.x - groundVelocity.x;
-        relativeX = Mathf.MoveTowards(relativeX, targetX, rate * Time.fixedDeltaTime);
+        relativeX = Mathf.MoveTowards(relativeX, targetX, rate * dt);
         v.x = relativeX + groundVelocity.x;
+
+        // Lock onto a moving platform when standing still on it.
+        // Matching velocity alone lets tiny errors (speed changes, turnarounds, contact
+        // friction) add up into a slow slide, so we hold a fixed spot on the platform instead.
+        bool onMover = isGrounded && groundBody != null;
+        if (onMover && !hasInput)
+        {
+            // Start the lock once we've finished slowing down relative to the platform,
+            // so releasing the stick still has its normal little deceleration.
+            if ((!anchored || anchorBody != groundBody) && Mathf.Abs(relativeX) < 0.05f)
+            {
+                anchored = true;
+                anchorBody = groundBody;
+                anchorOffsetX = rb.position.x - groundBody.position.x;
+            }
+
+            if (anchored && anchorBody == groundBody)
+            {
+                float error = groundBody.position.x + anchorOffsetX - rb.position.x;
+
+                // Something shoved us well off our spot: accept the new spot
+                if (Mathf.Abs(error) > maxAnchorCorrection)
+                {
+                    anchorOffsetX = rb.position.x - groundBody.position.x;
+                    error = 0f;
+                }
+
+                // Move exactly with the platform this step, plus whatever closes the gap
+                v.x = groundVelocity.x + error / dt;
+            }
+        }
+        else
+        {
+            // Moving under our own control, in the air, or on static ground
+            anchored = false;
+            anchorBody = null;
+        }
 
         // Never push into a wall. With no sideways force there's nothing for
         // friction to grab, so gravity takes over and the player slides down.

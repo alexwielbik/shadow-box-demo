@@ -17,12 +17,23 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("0 = locked to the player. Higher = looser follow.")]
     [SerializeField] private float smoothTime = 0.1f;
 
+    [Header("Keep Target In View")]
+    [Tooltip("The target is never allowed closer than this to the edge of the view " +
+             "(world units on the gameplay plane). Smoothing still works inside this zone; " +
+             "the camera only gets 'pulled' when the target reaches it.")]
+    [SerializeField] private Vector2 edgeMargin = new Vector2(3f, 2.5f);
+
     private Camera cam;
     private Vector3 velocity;
 
     private void Awake()
     {
         cam = GetComponent<Camera>();
+
+        // Sort sprites / Sorting Groups by depth (z) only, not by 3D distance.
+        // With a perspective camera, distance sorting makes objects at different
+        // heights swap draw order as the camera moves.
+        cam.transparencySortMode = TransparencySortMode.Orthographic;
     }
 
     private void Start()
@@ -36,14 +47,25 @@ public class CameraFollow : MonoBehaviour
     {
         if (target == null) return;
 
+        Vector3 previous = transform.position;
         Vector3 desired = Clamp(Desired());
 
         Vector3 next = smoothTime > 0f
-            ? Vector3.SmoothDamp(transform.position, desired, ref velocity, smoothTime)
+            ? Vector3.SmoothDamp(previous, desired, ref velocity, smoothTime)
             : desired;
 
-        // Clamp again so the view can never leave the bounds, even while smoothing
-        transform.position = Clamp(next);
+        // Hard limit: if smoothing has fallen too far behind, drag the camera
+        // so the target stays inside the view (minus the edge margin).
+        Vector3 kept = KeepTargetInView(next);
+        if (kept != next && Time.deltaTime > 0f)
+        {
+            // Keep SmoothDamp's velocity in sync with the forced movement so
+            // there's no jolt when the target slows down and smoothing takes over again.
+            velocity = (kept - previous) / Time.deltaTime;
+        }
+
+        // Clamp last so the view can never leave the bounds
+        transform.position = Clamp(kept);
     }
 
     private Vector3 Desired()
@@ -52,6 +74,23 @@ public class CameraFollow : MonoBehaviour
             target.position.x + offset.x,
             target.position.y + offset.y,
             transform.position.z);
+    }
+
+    // Moves the camera the minimum amount needed so the target sits inside the
+    // view rectangle shrunk by edgeMargin on each side.
+    private Vector3 KeepTargetInView(Vector3 p)
+    {
+        Vector2 half = ViewHalfSize();
+        float allowX = Mathf.Max(0f, half.x - edgeMargin.x);
+        float allowY = Mathf.Max(0f, half.y - edgeMargin.y);
+
+        // Where the camera "wants" to be relative to the target (includes offset)
+        float tx = target.position.x + offset.x;
+        float ty = target.position.y + offset.y;
+
+        p.x = Mathf.Clamp(p.x, tx - allowX, tx + allowX);
+        p.y = Mathf.Clamp(p.y, ty - allowY, ty + allowY);
+        return p;
     }
 
     private Vector3 Clamp(Vector3 p)
@@ -87,4 +126,22 @@ public class CameraFollow : MonoBehaviour
         }
         return new Vector2(halfHeight * cam.aspect, halfHeight);
     }
+
+#if UNITY_EDITOR
+    // Green box = the zone the target is kept inside (select the camera to see it)
+    private void OnDrawGizmosSelected()
+    {
+        if (cam == null) cam = GetComponent<Camera>();
+        Vector2 half = ViewHalfSize();
+        Vector3 size = new Vector3(
+            Mathf.Max(0f, half.x - edgeMargin.x) * 2f,
+            Mathf.Max(0f, half.y - edgeMargin.y) * 2f,
+            0f);
+        Vector3 center = new Vector3(transform.position.x - offset.x,
+                                     transform.position.y - offset.y,
+                                     boundsPlaneZ);
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(center, size);
+    }
+#endif
 }
