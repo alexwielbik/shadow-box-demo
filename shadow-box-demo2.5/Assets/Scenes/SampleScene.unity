@@ -3857,7 +3857,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0.009999752, y: 0.15999985, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.38, y: 1.38, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1075057998}
@@ -4376,7 +4376,7 @@ Transform:
   m_GameObject: {fileID: 1075057997}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.65, y: 22.32, z: -1.25}
+  m_LocalPosition: {x: -6.44, y: 22.32, z: -1.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4407,16 +4407,19 @@ MonoBehaviour:
   linkScale: 1
   linkSpacing: 0
   linksBehindWheel: 1
-  wheelRadius: 1.6
-  restLength: 4
-  maxTravel: 2
+  wheelRadius: 2.21
+  restLength: 5.7
+  minChainLength: 2.2
+  maxTravel: 3
   startTravel: 0
   hookAtSpriteTop: 1
   hookInset: 0.1
   maxSpeed: 1.5
   acceleration: 5
-  swayKick: 0.04
-  damping: 0.985
+  softStop: 1
+  swayAmount: 0.05
+  maxSwingAngle: 0.5
+  settleTime: 3
   weightMassRatio: 10
   segments: 12
   iterations: 20
@@ -5184,7 +5187,7 @@ Transform:
   m_GameObject: {fileID: 1311011305}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.6, y: -4.61, z: 0}
+  m_LocalPosition: {x: 2.32, y: -7.64, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7209,7 +7212,7 @@ Transform:
   m_GameObject: {fileID: 2122139135}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.57, y: -4.48, z: 0}
+  m_LocalPosition: {x: -2.16, y: -7.69, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -34,7 +34,7 @@ public class PulleyChainRig : MonoBehaviour
     [SerializeField] private Sprite linkFace;
     [Tooltip("Link seen edge-on (ChainLinkSkinn).")]
     [SerializeField] private Sprite linkEdge;
-    [Tooltip("Scale applied to every link. Match the scale you gave the Wheel.")]
+    [Tooltip("Scale applied to every link.")]
     [SerializeField] private float linkScale = 1f;
     [Tooltip("Distance between link centers. 0 = automatic (about 65% of a link's height, so they interlock).")]
     [SerializeField] private float linkSpacing = 0f;
@@ -42,12 +42,15 @@ public class PulleyChainRig : MonoBehaviour
     [SerializeField] private bool linksBehindWheel = true;
 
     [Header("Dimensions (world units, measured from this object)")]
-    [Tooltip("Where the chain rides on the wheel. Usually a little less than the wheel's outer edge. " +
-             "The yellow circle in the Scene view shows it.")]
+    [Tooltip("Where the chain rides on the wheel. The yellow circle in the Scene view shows it.")]
     [SerializeField] private float wheelRadius = 1.4f;
     [Tooltip("Length of each hanging side when the weights are level.")]
     [SerializeField] private float restLength = 4f;
-    [Tooltip("How far one weight can rise (and the other drop) from level.")]
+    [Tooltip("Shortest a side's chain may get. Keeps the raised weight from running into the wheel. " +
+             "The red tick in the Scene view shows how high the chain end can go.")]
+    [SerializeField, Min(0.1f)] private float minChainLength = 2.2f;
+    [Tooltip("How far one weight can rise (and the other drop) from level. " +
+             "Can't exceed Rest Length - Min Chain Length.")]
     [SerializeField] private float maxTravel = 2f;
     [Tooltip("Starting offset. Positive = left weight starts lower.")]
     [SerializeField] private float startTravel = 0f;
@@ -58,15 +61,21 @@ public class PulleyChainRig : MonoBehaviour
     [Tooltip("Pulls the chain down into the weight's hook loop.")]
     [SerializeField] private float hookInset = 0.1f;
 
-    [Header("Feel")]
+    [Header("Movement")]
     [Tooltip("Chain speed in units per second at full input.")]
     [SerializeField, Min(0f)] private float maxSpeed = 1.5f;
     [Tooltip("How quickly the wheel spins up and down. Lower = heavier.")]
     [SerializeField, Min(0.01f)] private float acceleration = 5f;
-    [Tooltip("Sideways nudge on the weights when the wheel speeds up or stops. This is the main source of sway.")]
-    [SerializeField, Min(0f)] private float swayKick = 0.04f;
-    [Tooltip("Lower = settles faster.")]
-    [SerializeField, Range(0.9f, 1f)] private float damping = 0.985f;
+    [Tooltip("Ease into the ends of the range instead of stopping dead (which causes a big jolt).")]
+    [SerializeField] private bool softStop = true;
+
+    [Header("Sway")]
+    [Tooltip("How much of each change in chain speed turns into sideways swing. 0 = no sway.")]
+    [SerializeField, Range(0f, 2f)] private float swayAmount = 0.6f;
+    [Tooltip("Hard limit on how far the weights can swing, in degrees from straight down.")]
+    [SerializeField, Range(0f, 45f)] private float maxSwingAngle = 8f;
+    [Tooltip("Seconds for a swing (or bounce) to mostly die out. Lower = settles faster.")]
+    [SerializeField, Min(0.1f)] private float settleTime = 3f;
     [Tooltip("How heavy a weight is compared to one piece of chain.")]
     [SerializeField, Min(1f)] private float weightMassRatio = 10f;
     [SerializeField, Range(4, 30)] private int segments = 12;
@@ -149,10 +158,13 @@ public class PulleyChainRig : MonoBehaviour
         if (!linkFace) { Debug.LogWarning($"{name}: no chain link sprite assigned.", this); return; }
 
         float linkHeight = linkFace.bounds.size.y * linkScale;
-        spacing = linkSpacing > 0f ? linkSpacing : linkHeight * 0.65f;
+        float targetSpacing = linkSpacing > 0f ? linkSpacing : linkHeight * 0.65f;
 
+        // Use a whole number of links and spread them evenly over the full chain,
+        // so both weights get the same half-link at their hook (no leftover gap on the right).
         float totalLength = restLength * 2f + Mathf.PI * wheelRadius;
-        int count = Mathf.FloorToInt(totalLength / spacing);
+        int count = Mathf.Max(1, Mathf.RoundToInt(totalLength / targetSpacing));
+        spacing = totalLength / count;
         links = new Transform[count];
 
         for (int i = 0; i < count; i++)
@@ -193,41 +205,56 @@ public class PulleyChainRig : MonoBehaviour
 
         float prevSpeed = speed;
         speed = Mathf.MoveTowards(speed, held * maxSpeed, acceleration * dt);
+
+        if (softStop)
+        {
+            // Never go faster than what can still brake to zero before the end of the range
+            float room = speed > 0f ? maxTravel - travel : maxTravel + travel;
+            float limit = Mathf.Sqrt(2f * acceleration * Mathf.Max(0f, room));
+            speed = Mathf.Clamp(speed, -limit, limit);
+        }
+
         travel += speed * dt;
         if (Mathf.Abs(travel) > maxTravel)
         {
             travel = Mathf.Clamp(travel, -maxTravel, maxTravel);
-            speed = 0f; // hard stop at the end of the chain -> a bigger swing
+            speed = 0f;
         }
-        float accel = (speed - prevSpeed) / dt;
 
-        // 2. Sway: shove the weights sideways in opposite directions when the speed changes
-        ropeL[segments].x += accel * swayKick * dt;
-        ropeR[segments].x -= accel * swayKick * dt;
+        // 2. Sway: change the weights' sideways VELOCITY in proportion to the change in chain speed.
+        //    (Moving a Verlet point adds velocity, so the push is scaled by dt to be a velocity change.)
+        float push = (speed - prevSpeed) * swayAmount * dt;
+        ropeL[segments].x += push;
+        ropeR[segments].x -= push;
 
         // 3. Rope physics in this object's local XY plane
         Vector2 g = transform.InverseTransformDirection(Physics2D.gravity);
-        Simulate(ropeL, oldL, restLength + travel, -1, g, dt);
-        Simulate(ropeR, oldR, restLength - travel, +1, g, dt);
+        float keep = Mathf.Exp(-3f * dt / settleTime); // ~95% of motion gone after settleTime
+        Simulate(ropeL, oldL, restLength + travel, -1, g, dt, keep);
+        Simulate(ropeR, oldR, restLength - travel, +1, g, dt, keep);
 
         // 4. Physics-driven weights move here so Player 1 rides them correctly
         if (rbLeft) MoveBody(rbLeft, ropeL, hookLeft);
         if (rbRight) MoveBody(rbRight, ropeR, hookRight);
     }
 
-    private void Simulate(Vector2[] r, Vector2[] old, float length, int side, Vector2 g, float dt)
+    private void Simulate(Vector2[] r, Vector2[] old, float length, int side, Vector2 g, float dt, float keep)
     {
+        Vector2 pin = new Vector2(side * wheelRadius, 0f); // where the chain leaves the wheel
+
+        // Verlet integration with damping
         for (int i = 1; i < r.Length; i++)
         {
-            Vector2 v = (r[i] - old[i]) * damping;
+            Vector2 v = (r[i] - old[i]) * keep;
             old[i] = r[i];
             r[i] += v + g * (dt * dt);
         }
 
+        // Distance constraints, so the chain bends naturally along its length
         float seg = length / segments;
         for (int it = 0; it < iterations; it++)
         {
-            r[0] = new Vector2(side * wheelRadius, 0f); // where the chain leaves the wheel
+            r[0] = pin;
             for (int i = 0; i < segments; i++)
             {
                 Vector2 d = r[i + 1] - r[i];
@@ -238,6 +265,31 @@ public class PulleyChainRig : MonoBehaviour
                 r[i] += corr * invMass[i];
                 r[i + 1] -= corr * invMass[i + 1];
             }
+        }
+        r[0] = pin;
+
+        // Swing limit: keep the weight inside a cone below the pin
+        int n = segments;
+        float drop = pin.y - r[n].y;
+        if (drop > 0f)
+        {
+            float maxSide = drop * Mathf.Tan(maxSwingAngle * Mathf.Deg2Rad);
+            float dx = r[n].x - pin.x;
+            if (Mathf.Abs(dx) > maxSide)
+            {
+                float clamped = Mathf.Sign(dx) * maxSide;
+                old[n].x += clamped - dx; // shift history too, so the clamp also removes outward speed
+                r[n].x = pin.x + clamped;
+            }
+        }
+
+        // Final pass from the pin down: no link may be farther than one segment from the one above.
+        // This makes the chain unstretchable, which removes the springy up-and-down bounce.
+        for (int i = 1; i <= n; i++)
+        {
+            Vector2 d = r[i] - r[i - 1];
+            float dist = d.magnitude;
+            if (dist > seg) r[i] = r[i - 1] + d * (seg / dist);
         }
     }
 
@@ -347,12 +399,14 @@ public class PulleyChainRig : MonoBehaviour
     private void OnValidate()
     {
         restLength = Mathf.Max(0.5f, restLength);
-        maxTravel = Mathf.Clamp(maxTravel, 0f, restLength - 0.25f);
+        minChainLength = Mathf.Clamp(minChainLength, 0.1f, restLength);
+        maxTravel = Mathf.Clamp(maxTravel, 0f, restLength - minChainLength);
         startTravel = Mathf.Clamp(startTravel, -maxTravel, maxTravel);
         wheelRadius = Mathf.Max(0.05f, wheelRadius);
     }
 
-    // Scene view guide: yellow = chain path at rest, cyan = how far each weight can travel
+    // Scene view guide: yellow = chain path at rest, cyan = travel range of each chain end,
+    // red = the highest a chain end is allowed to go (Min Chain Length)
     private void OnDrawGizmos()
     {
         Gizmos.matrix = transform.localToWorldMatrix;
@@ -370,11 +424,13 @@ public class PulleyChainRig : MonoBehaviour
         Gizmos.DrawLine(new Vector3(-wheelRadius, 0f), new Vector3(-wheelRadius, -restLength));
         Gizmos.DrawLine(new Vector3(wheelRadius, 0f), new Vector3(wheelRadius, -restLength));
 
-        Gizmos.color = Color.cyan;
         foreach (float side in new[] { -wheelRadius, wheelRadius })
         {
+            Gizmos.color = Color.cyan;
             Gizmos.DrawLine(new Vector3(side - 0.2f, -restLength + maxTravel), new Vector3(side + 0.2f, -restLength + maxTravel));
             Gizmos.DrawLine(new Vector3(side - 0.2f, -restLength - maxTravel), new Vector3(side + 0.2f, -restLength - maxTravel));
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(new Vector3(side - 0.3f, -minChainLength), new Vector3(side + 0.3f, -minChainLength));
         }
     }
 }
