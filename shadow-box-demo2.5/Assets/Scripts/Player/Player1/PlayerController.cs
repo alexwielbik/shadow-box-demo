@@ -59,11 +59,20 @@ public class PlayerController : MonoBehaviour
 
     private readonly ContactPoint2D[] contacts = new ContactPoint2D[8];
 
+    // Moving platforms: the velocity of whatever kinematic body we're standing on
+    private Vector2 groundVelocity;
+    private readonly Collider2D[] groundHits = new Collider2D[4];
+    private ContactFilter2D groundFilter;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         CalculateJumpPhysics();
+
+        groundFilter = new ContactFilter2D();
+        groundFilter.SetLayerMask(groundLayers);
+        groundFilter.useTriggers = false;
     }
 
     // Lets you tweak jump values in Play mode and feel the change immediately
@@ -142,8 +151,21 @@ public class PlayerController : MonoBehaviour
 
     private void CheckGround()
     {
-        isGrounded = Physics2D.OverlapCircle(
-            groundCheck.position, groundCheckRadius, groundLayers) != null;
+        int hitCount = Physics2D.OverlapCircle(
+            groundCheck.position, groundCheckRadius, groundFilter, groundHits);
+        isGrounded = hitCount > 0;
+
+        // If any of the ground we're touching is a moving (kinematic) body, ride along with it
+        groundVelocity = Vector2.zero;
+        for (int i = 0; i < hitCount; i++)
+        {
+            Rigidbody2D body = groundHits[i].attachedRigidbody;
+            if (body != null && body != rb && body.bodyType == RigidbodyType2D.Kinematic)
+            {
+                groundVelocity = body.linearVelocity;
+                break;
+            }
+        }
 
         if (isGrounded)
             coyoteTimer = coyoteTime;
@@ -175,7 +197,11 @@ public class PlayerController : MonoBehaviour
         float rate = Mathf.Abs(targetX) > 0.01f ? acceleration : deceleration;
         if (!isGrounded) rate *= airControl;
 
-        v.x = Mathf.MoveTowards(v.x, targetX, rate * Time.fixedDeltaTime);
+        // Accelerate relative to the ground we're standing on (0 unless it's a moving platform).
+        // Leaving the platform keeps its speed as momentum, which then eases off in the air.
+        float relativeX = v.x - groundVelocity.x;
+        relativeX = Mathf.MoveTowards(relativeX, targetX, rate * Time.fixedDeltaTime);
+        v.x = relativeX + groundVelocity.x;
 
         // Never push into a wall. With no sideways force there's nothing for
         // friction to grab, so gravity takes over and the player slides down.
@@ -192,9 +218,15 @@ public class PlayerController : MonoBehaviour
         // Jump: buffered press + (grounded or within coyote window)
         if (jumpBufferTimer > 0f && coyoteTimer > 0f)
         {
-            v.y = jumpVelocity;
+            // A rising platform adds its lift to the jump
+            v.y = jumpVelocity + Mathf.Max(0f, groundVelocity.y);
             jumpBufferTimer = 0f;
             coyoteTimer = 0f;
+        }
+        else if (isGrounded && groundVelocity.y < 0f && v.y <= 0.01f && v.y > groundVelocity.y)
+        {
+            // Descending platform: stick to it instead of hopping down in little falls
+            v.y = groundVelocity.y;
         }
 
         // Variable jump height: releasing early cuts upward speed
