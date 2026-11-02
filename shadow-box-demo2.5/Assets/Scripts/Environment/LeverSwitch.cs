@@ -11,6 +11,8 @@ public class LeverSwitch : MonoBehaviour, IInteractable
     [Header("State")]
     [Tooltip("Current state. Changing this in the Inspector previews the lever angle in the Scene view.")]
     [SerializeField] private bool isOn = false;
+    [Tooltip("Which color channel this switch powers.")]
+    [SerializeField] private SwitchColor color = SwitchColor.Grey;
 
     [Header("Lever")]
     [Tooltip("The child Transform holding the lever sprite. Its pivot must be at the hinge.")]
@@ -36,12 +38,15 @@ public class LeverSwitch : MonoBehaviour, IInteractable
 
     /// <summary>Read this from other scripts to check the switch state.</summary>
     public bool IsOn => isOn;
+    public SwitchColor SwitchColor => color;
 
     public bool CanInteract => flipRoutine == null && (canToggleBack || !isOn);
 
     private void Awake()
     {
         SnapLever();
+        // Publish the starting state so a switch that begins On powers its objects immediately
+        SwitchChannels.SetActive(color, isOn);
     }
 
     // Keeps the Scene view in sync when you edit isOn or the angles in the Inspector
@@ -72,6 +77,9 @@ public class LeverSwitch : MonoBehaviour, IInteractable
 
         if (flipRoutine != null) StopCoroutine(flipRoutine);
         flipRoutine = StartCoroutine(FlipLever(isOn ? onAngle : offAngle));
+
+        // Power (or un-power) every object listening to this color
+        SwitchChannels.SetActive(color, isOn);
 
         onToggled?.Invoke(isOn);
         if (isOn) onTurnedOn?.Invoke();
