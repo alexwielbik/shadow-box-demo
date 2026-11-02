@@ -347,12 +347,12 @@ TextureImporter:
       name: BackGear
       rect:
         serializedVersion: 2
-        x: 957
-        y: 722
+        x: 1047
+        y: 958
         width: 935
-        height: 929
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+        height: 911
+      alignment: 9
+      pivot: {x: 0.49762556, y: 0.5049248}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -541,6 +541,94 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: CounterWeight
+      rect:
+        serializedVersion: 2
+        x: 927
+        y: 47
+        width: 435
+        height: 906
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a3832639d21d8134885a351c9fb7ddfe
+      internalID: -1613200666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pulley
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 1752
+        width: 524
+        height: 501
+      alignment: 9
+      pivot: {x: 0.5000001, y: 0.5246828}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 31c4618db60ab1345a44e7df159a1258
+      internalID: -244272412
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChainLinkWide
+      rect:
+        serializedVersion: 2
+        x: 2044
+        y: 2128
+        width: 76
+        height: 139
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ba5619f8fa33d4546bbf2ba135ab8923
+      internalID: -325371411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChainLinkSkinn
+      rect:
+        serializedVersion: 2
+        x: 2172
+        y: 2128
+        width: 35
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 37a2ded68abf78e4488337985b4c40c0
+      internalID: -1170073154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -558,16 +646,20 @@ TextureImporter:
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       BackGear: 317562366
+      ChainLinkSkinn: -1170073154
+      ChainLinkWide: -325371411
       ClockFace: -1585605518
       ClockGear_1: -438637741
       ClockGear_2: 1454705904
       ClockHand: 791574087
       ClockHandGrey: -1029815749
+      CounterWeight: -1613200666
       ForeGear: 344294355
       LargeStainglassBack: -569816240
       LargeStainglassFrame: -848479823
       Platform: 1480500681
       PlatformSmall: 1154586529
+      Pulley: -244272412
       SmallStainglassBack: -8787264852723620008
       SmallStainglassFrame: 1737313512
       SwitchLeverBlue: -1760401356
