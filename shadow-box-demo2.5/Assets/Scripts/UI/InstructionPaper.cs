@@ -24,11 +24,15 @@ public class InstructionPaper : MonoBehaviour
         public InputActionReference action;
         [Tooltip("The key picture. Fades out when this step is done.")]
         public Image icon;
+        [Tooltip("Any other pictures that belong to this step (e.g. the mouse body under the " +
+                 "button highlight). They fade together with the icon.")]
+        public Image[] extraIcons = Array.Empty<Image>();
         [Tooltip("The green checkmark. Hidden until this step is done.")]
         public Image checkmark;
 
         [NonSerialized] public bool done;
-        [NonSerialized] public Color iconColor;
+        [NonSerialized] public Image[] fadeImages;   // icon + extraIcons, built in Awake
+        [NonSerialized] public Color[] fadeColors;
         [NonSerialized] public Vector3 checkScale;
     }
 
@@ -82,9 +86,17 @@ public class InstructionPaper : MonoBehaviour
         group.interactable = false;
         group.blocksRaycasts = false;
 
-        foreach (Step s in steps)
+        if (steps.Length == 0)
+            Debug.LogWarning($"{name}: InstructionPaper has no Steps, so nothing will be tracked " +
+                             "and the paper will never close. Fill in the Steps list (outside Play mode).", this);
+
+        for (int i = 0; i < steps.Length; i++)
         {
-            if (s.icon != null) s.iconColor = s.icon.color;
+            Step s = steps[i];
+            if (s.action == null) Debug.LogWarning($"{name}: Step {i} ({s.label}) has no Action.", this);
+            if (s.checkmark == null) Debug.LogWarning($"{name}: Step {i} ({s.label}) has no Checkmark.", this);
+
+            CollectFadeImages(s);
             if (s.checkmark != null)
             {
                 s.checkScale = s.checkmark.rectTransform.localScale;
@@ -166,21 +178,43 @@ public class InstructionPaper : MonoBehaviour
 
         Step s = steps[index];
         s.done = true;
-        if (s.icon != null) StartCoroutine(FadeIcon(s));
+        if (s.fadeImages.Length > 0) StartCoroutine(FadeIcon(s));
         if (s.checkmark != null) StartCoroutine(PopCheck(s));
         onStepCompleted?.Invoke(index);
     }
 
+    // Gathers the icon and extra icons into one list (skipping empty slots and duplicates)
+    private static void CollectFadeImages(Step s)
+    {
+        var list = new System.Collections.Generic.List<Image>();
+        if (s.icon != null) list.Add(s.icon);
+        if (s.extraIcons != null)
+            foreach (Image img in s.extraIcons)
+                if (img != null && !list.Contains(img)) list.Add(img);
+
+        s.fadeImages = list.ToArray();
+        s.fadeColors = new Color[s.fadeImages.Length];
+        for (int i = 0; i < s.fadeImages.Length; i++) s.fadeColors[i] = s.fadeImages[i].color;
+    }
+
     private IEnumerator FadeIcon(Step s)
     {
-        Color from = s.iconColor;
-        Color to = new Color(from.r, from.g, from.b, from.a * completedIconAlpha);
         for (float t = 0f; t < iconFadeTime; t += Time.deltaTime)
         {
-            s.icon.color = Color.Lerp(from, to, Smooth(t / iconFadeTime));
+            SetIconAlpha(s, Mathf.Lerp(1f, completedIconAlpha, Smooth(t / iconFadeTime)));
             yield return null;
         }
-        s.icon.color = to;
+        SetIconAlpha(s, completedIconAlpha);
+    }
+
+    private static void SetIconAlpha(Step s, float alphaMultiplier)
+    {
+        for (int i = 0; i < s.fadeImages.Length; i++)
+        {
+            Color c = s.fadeColors[i];
+            c.a *= alphaMultiplier;
+            s.fadeImages[i].color = c;
+        }
     }
 
     private IEnumerator PopCheck(Step s)
