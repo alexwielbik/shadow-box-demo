@@ -1,5 +1,15 @@
 using UnityEngine;
 
+/// <summary>
+/// Spins an object, optionally powered by a switch color and steered by Player 2.
+///
+/// Two ways to move:
+///   - No Rigidbody2D: rotates the Transform in Update (background / decor gears).
+///   - Kinematic Rigidbody2D on the same object: drives the body's angularVelocity in
+///     FixedUpdate. Use this for any gear the player stands on, so physics knows how fast
+///     the surface is moving and PlayerController can carry the player with it.
+/// </summary>
+[DefaultExecutionOrder(-50)] // set this step's spin before PlayerController reads it (same as MovingPlatform)
 public class RotatingObject : MonoBehaviour
 {
     public enum RotationDirection
@@ -34,14 +44,53 @@ public class RotatingObject : MonoBehaviour
     [SerializeField] private float spinUpTime = 0.4f;
 
     private float currentSpeed; // signed degrees per second actually being applied
+    private Rigidbody2D body;   // kinematic body to drive, or null for Transform mode
+
+    /// <summary>Signed degrees per second right now (+ = counter-clockwise).</summary>
+    public float CurrentSpeed => currentSpeed;
+
+    private bool UsesPhysics => body != null && body.bodyType == RigidbodyType2D.Kinematic;
+
+    private void Awake()
+    {
+        body = GetComponent<Rigidbody2D>();
+        if (body != null && body.bodyType != RigidbodyType2D.Kinematic)
+            Debug.LogWarning($"{name}: RotatingObject only drives Kinematic Rigidbody2Ds. " +
+                             "Falling back to rotating the Transform.", this);
+    }
 
     private void Start()
     {
         // Always-on objects start at full speed; switch-controlled ones start wherever the switch says
         currentSpeed = TargetSpeed();
+        if (UsesPhysics) body.angularVelocity = currentSpeed;
     }
 
     private void Update()
+    {
+        if (UsesPhysics) return;
+
+        UpdateSpeed(Time.deltaTime);
+        if (!Mathf.Approximately(currentSpeed, 0f))
+            transform.Rotate(0f, 0f, currentSpeed * Time.deltaTime, Space.Self);
+    }
+
+    private void FixedUpdate()
+    {
+        if (!UsesPhysics) return;
+
+        UpdateSpeed(Time.fixedDeltaTime);
+        // Kinematic bodies rotate by their own angularVelocity (degrees / second), which also
+        // lets GetPointVelocity report how fast any point on the surface is moving.
+        body.angularVelocity = currentSpeed;
+    }
+
+    private void OnDisable()
+    {
+        if (UsesPhysics) body.angularVelocity = 0f;
+    }
+
+    private void UpdateSpeed(float dt)
     {
         float target = TargetSpeed();
 
@@ -53,11 +102,8 @@ public class RotatingObject : MonoBehaviour
         {
             // Accelerate toward the target, so starting, stopping and reversing all look mechanical
             float accel = Mathf.Abs(degreesPerSecond) / spinUpTime;
-            currentSpeed = Mathf.MoveTowards(currentSpeed, target, accel * Time.deltaTime);
+            currentSpeed = Mathf.MoveTowards(currentSpeed, target, accel * dt);
         }
-
-        if (!Mathf.Approximately(currentSpeed, 0f))
-            transform.Rotate(0f, 0f, currentSpeed * Time.deltaTime, Space.Self);
     }
 
     private float TargetSpeed()

@@ -23,8 +23,47 @@ public class CameraFollow : MonoBehaviour
              "the camera only gets 'pulled' when the target reaches it.")]
     [SerializeField] private Vector2 edgeMargin = new Vector2(3f, 2.5f);
 
+    [Header("Bounds Transition")]
+    [Tooltip("Seconds the camera takes to slide over when SetBounds is called without a time.")]
+    [Min(0f)]
+    [SerializeField] private float defaultTransitionTime = 0.8f;
+
     private Camera cam;
     private Vector3 velocity;
+
+    // Slide between two sets of bounds
+    private bool transitioning;
+    private Vector3 transitionFrom;
+    private float transitionTimer;
+    private float transitionDuration;
+
+    /// <summary>The bounds the camera is currently kept inside.</summary>
+    public BoxCollider2D Bounds => bounds;
+
+    /// <summary>
+    /// Switch to a different bounds box and slide the camera over to it.
+    /// transitionTime &lt; 0 uses Default Transition Time; 0 cuts instantly.
+    /// Calling it again mid-slide (e.g. the player backs out) slides smoothly from wherever the camera is.
+    /// </summary>
+    public void SetBounds(BoxCollider2D newBounds, float transitionTime = -1f)
+    {
+        if (newBounds == null || newBounds == bounds) return;
+
+        bounds = newBounds;
+        transitionDuration = transitionTime < 0f ? defaultTransitionTime : transitionTime;
+
+        if (transitionDuration <= 0f || target == null)
+        {
+            transitioning = false;
+            velocity = Vector3.zero;
+            if (target != null) transform.position = Clamp(Desired());
+            return;
+        }
+
+        transitionFrom = transform.position;
+        transitionTimer = 0f;
+        transitioning = true;
+    }
 
     private void Awake()
     {
@@ -47,6 +86,12 @@ public class CameraFollow : MonoBehaviour
     {
         if (target == null) return;
 
+        if (transitioning)
+        {
+            UpdateTransition();
+            return;
+        }
+
         Vector3 previous = transform.position;
         Vector3 desired = Clamp(Desired());
 
@@ -66,6 +111,24 @@ public class CameraFollow : MonoBehaviour
 
         // Clamp last so the view can never leave the bounds
         transform.position = Clamp(kept);
+    }
+
+    // Ease from where the camera was to where it will rest inside the new bounds.
+    // The end point is recomputed every frame, so it stays correct while the player keeps moving.
+    private void UpdateTransition()
+    {
+        transitionTimer += Time.deltaTime;
+        float t = Mathf.Clamp01(transitionTimer / transitionDuration);
+        t = t * t * (3f - 2f * t); // smoothstep: eases in and out
+
+        Vector3 to = Clamp(Desired());
+        transform.position = Vector3.Lerp(transitionFrom, to, t);
+
+        if (t >= 1f)
+        {
+            transitioning = false;
+            velocity = Vector3.zero; // hand back to normal following with no leftover speed
+        }
     }
 
     private Vector3 Desired()

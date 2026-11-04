@@ -70,7 +70,7 @@ public class PlayerController : MonoBehaviour
     private ContactFilter2D groundFilter;
     private Rigidbody2D groundBody;      // the kinematic body we're standing on (null if none)
     private Rigidbody2D anchorBody;      // the body we're currently locked to
-    private float anchorOffsetX;         // our X relative to anchorBody while locked
+    private Vector2 anchorLocal;         // our position in anchorBody's own (rotating) frame while locked
     private bool anchored;
 
     private void Awake()
@@ -175,7 +175,9 @@ public class PlayerController : MonoBehaviour
             Rigidbody2D body = groundHits[i].attachedRigidbody;
             if (body != null && body != rb && body.bodyType == RigidbodyType2D.Kinematic)
             {
-                groundVelocity = body.linearVelocity;
+                // Velocity of the surface right where we are. For a sliding platform this is just
+                // its linearVelocity; for a spinning gear it includes the spin (faster further out).
+                groundVelocity = body.GetPointVelocity(rb.position);
                 groundBody = body;
                 break;
             }
@@ -231,17 +233,18 @@ public class PlayerController : MonoBehaviour
             {
                 anchored = true;
                 anchorBody = groundBody;
-                anchorOffsetX = rb.position.x - groundBody.position.x;
+                anchorLocal = ToBodyLocal(groundBody, rb.position);
             }
 
             if (anchored && anchorBody == groundBody)
             {
-                float error = groundBody.position.x + anchorOffsetX - rb.position.x;
+                // Where our spot on the platform is now (it moves and turns with the body)
+                float error = ToWorld(groundBody, anchorLocal).x - rb.position.x;
 
                 // Something shoved us well off our spot: accept the new spot
                 if (Mathf.Abs(error) > maxAnchorCorrection)
                 {
-                    anchorOffsetX = rb.position.x - groundBody.position.x;
+                    anchorLocal = ToBodyLocal(groundBody, rb.position);
                     error = 0f;
                 }
 
@@ -262,6 +265,18 @@ public class PlayerController : MonoBehaviour
         if (touchingWallLeft && v.x < 0f) v.x = 0f;
 
         rb.linearVelocity = v;
+    }
+
+    // Convert between world space and a body's own frame (position + rotation), so a spot
+    // "on" a platform stays put even if the platform turns (gears).
+    private static Vector2 ToBodyLocal(Rigidbody2D body, Vector2 world)
+    {
+        return Quaternion.Euler(0f, 0f, -body.rotation) * (world - body.position);
+    }
+
+    private static Vector2 ToWorld(Rigidbody2D body, Vector2 local)
+    {
+        return body.position + (Vector2)(Quaternion.Euler(0f, 0f, body.rotation) * local);
     }
 
     private void HandleJump()
