@@ -365,7 +365,7 @@ TextureImporter:
         width: 343
         height: 90
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -374,6 +374,116 @@ TextureImporter:
       bones: []
       spriteID: b976f1443502f974196c8b3360245c7d
       internalID: 722177327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Press
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 809
+        width: 211
+        height: 77
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7baa50753cc495248ba2ff61b08b9bc9
+      internalID: 921366939
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ToView
+      rect:
+        serializedVersion: 2
+        x: 231
+        y: 807
+        width: 255
+        height: 81
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ebe9347cdee6c334a8ceec8c3248ebbb
+      internalID: 2131783586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BlankBox
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 715
+        width: 94
+        height: 91
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e5a42577dc6663343ba331302dc51e0c
+      internalID: -1127979170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Q
+      rect:
+        serializedVersion: 2
+        x: 1099
+        y: 764
+        width: 131
+        height: 132
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5ef260e0b026faa43bfe553b0a54642e
+      internalID: -601565315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LevelObjectives
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 804
+        width: 566
+        height: 83
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0bb844c8279b0624bb006688c1519537
+      internalID: 2015488817
       vertices: []
       indices: 
       edges: []
@@ -395,18 +505,23 @@ TextureImporter:
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       BigPaperBack: -4848234593739441513
+      BlankBox: -1127979170
       Control: 1894035803
       E: -1983469234
       GreenCheckMark: -638529107
       InstructionsSpeiteSheet_10: -1557190786
       InstructionsSpeiteSheet_11: -1836259185
       LeftMouse: 941956245
+      LevelObjectives: 2015488817
       Mouse: 510656901
       MoveThrough: 528809206
+      Press: 921366939
+      Q: -601565315
       RightMouse: -182585205
       SmallPaperBack: -1547170795
       Space: 722177327
       TheEnvironment: -1974408198
+      ToView: 2131783586
       WASD: -522465561
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0

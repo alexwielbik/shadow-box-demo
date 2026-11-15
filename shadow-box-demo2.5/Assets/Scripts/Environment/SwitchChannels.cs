@@ -18,6 +18,8 @@ public enum SwitchColor
 ///   Direction     - the last direction Player 2 pressed (+1 = counter-clockwise / left,
 ///                   -1 = clockwise / right, 0 = Player 2 hasn't pressed anything yet)
 ///   HeldInput     - what Player 2 is holding right now (+1, -1 or 0). Always 0 while inactive.
+///   EverActive    - has this color EVER been turned on? Never goes back to false.
+///                   Used by the Level Objectives menu.
 /// </summary>
 public static class SwitchChannels
 {
@@ -26,10 +28,14 @@ public static class SwitchChannels
     private static bool[] active = new bool[ColorCount];
     private static int[] direction = new int[ColorCount];
     private static int[] heldInput = new int[ColorCount];
+    private static bool[] everActive = new bool[ColorCount];
     private static int anyDirection; // last direction Player 2 pressed on ANY active color
 
     /// <summary>Fires when a color turns on or off.</summary>
     public static event Action<SwitchColor, bool> ActiveChanged;
+
+    /// <summary>Fires once per color, the first time that color is turned on.</summary>
+    public static event Action<SwitchColor> FirstActivated;
 
     /// <summary>Fires when Player 2 picks a new direction for a color.</summary>
     public static event Action<SwitchColor, int> DirectionChanged;
@@ -42,14 +48,19 @@ public static class SwitchChannels
         active = new bool[ColorCount];
         direction = new int[ColorCount];
         heldInput = new int[ColorCount];
+        everActive = new bool[ColorCount];
         anyDirection = 0;
         ActiveChanged = null;
+        FirstActivated = null;
         DirectionChanged = null;
     }
 
     public static bool IsActive(SwitchColor color) => active[(int)color];
     public static int GetDirection(SwitchColor color) => direction[(int)color];
     public static int GetHeldInput(SwitchColor color) => heldInput[(int)color];
+
+    /// <summary>True once this color has been turned on at least once (stays true after it's turned off).</summary>
+    public static bool HasEverBeenActive(SwitchColor color) => everActive[(int)color];
 
     /// <summary>True if at least one switch of any color is on.</summary>
     public static bool IsAnyActive()
@@ -78,6 +89,12 @@ public static class SwitchChannels
         active[i] = on;
         if (!on) heldInput[i] = 0;
         ActiveChanged?.Invoke(color, on);
+
+        if (on && !everActive[i])
+        {
+            everActive[i] = true;
+            FirstActivated?.Invoke(color);
+        }
     }
 
     public static void SetDirection(SwitchColor color, int dir)
