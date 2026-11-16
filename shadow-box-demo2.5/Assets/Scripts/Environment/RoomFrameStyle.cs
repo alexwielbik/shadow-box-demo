@@ -49,6 +49,9 @@ public class RoomFrameStyle : ScriptableObject
     [Min(0)] public int colliderLayer = 1;
 
     [Header("Border shadows")]
+    [Tooltip("Real light shadows cast by the paper pieces. Off = same as scene 1, where the " +
+             "shadows come only from the BorderShadow strips below.")]
+    public bool bordersCastShadows = false;
     public bool addShadows = true;
     [Tooltip("BorderShadow_Mat")]
     public Material shadowMaterial;

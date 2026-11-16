@@ -103,7 +103,20 @@ public class RoomFrame : MonoBehaviour
         Camera cam = Camera.main;
         if (cam != null && !cam.orthographic)
         {
-            distance = Mathf.Abs(cam.transform.position.z - transform.position.z);
+            float camDistance = Mathf.Abs(cam.transform.position.z - transform.position.z);
+
+            // A camera sitting on (or almost on) the gameplay plane would make every
+            // depth calculation divide by zero. Use the style's distance instead and say so.
+            if (camDistance < 1f)
+            {
+                Debug.LogWarning($"{name}: the Main Camera is at z = {cam.transform.position.z:0.##}, " +
+                                 "right on the gameplay plane. Set its Position Z to -25.19. " +
+                                 $"Building the room for a camera at distance {distance} for now.", cam);
+            }
+            else
+            {
+                distance = camDistance;
+            }
             fov = cam.fieldOfView;
         }
 
@@ -301,6 +314,9 @@ public class RoomFrame : MonoBehaviour
             }
 
             GameObject quad = MakeQuad(pieceName, parent, pos, scale, layer.material);
+            quad.GetComponent<MeshRenderer>().shadowCastingMode = style.bordersCastShadows
+                ? UnityEngine.Rendering.ShadowCastingMode.On
+                : UnityEngine.Rendering.ShadowCastingMode.Off;
 
             // Texture tiling anchored to the room, so pieces line up and resizing never stretches the paper
             Vector2 tile = horizontal

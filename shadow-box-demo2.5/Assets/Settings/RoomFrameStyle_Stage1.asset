@@ -28,6 +28,7 @@ MonoBehaviour:
   bandWidth: 0.25
   edgeOverhang: 0.1
   colliderLayer: 1
+  bordersCastShadows: 0
   addShadows: 1
   shadowMaterial: {fileID: 2100000, guid: bcc1bda64e2f2ab459e2efaabe2b2e22, type: 2}
   shadowWidth: 0.15
