@@ -65,9 +65,29 @@ public class CameraFollow : MonoBehaviour
         transitioning = true;
     }
 
+    /// <summary>Jump straight to the target (no smoothing, cancels any bounds slide). Used after a teleport.</summary>
+    public void SnapToTarget()
+    {
+        transitioning = false;
+        velocity = Vector3.zero;
+        if (target != null) transform.position = Clamp(Desired());
+    }
+
     private void Awake()
     {
         cam = GetComponent<Camera>();
+
+        // Lets the camera live in a prefab: anything left empty is found in the scene
+        if (target == null)
+        {
+            PlayerController player = FindAnyObjectByType<PlayerController>();
+            if (player != null) target = player.transform;
+        }
+        if (bounds == null)
+        {
+            RoomFrame room = FindAnyObjectByType<RoomFrame>();
+            if (room != null) bounds = room.CameraBounds;
+        }
 
         // Sort sprites / Sorting Groups by depth (z) only, not by 3D distance.
         // With a perspective camera, distance sorting makes objects at different

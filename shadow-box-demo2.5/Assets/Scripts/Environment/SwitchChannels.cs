@@ -55,6 +55,19 @@ public static class SwitchChannels
         DirectionChanged = null;
     }
 
+    /// <summary>
+    /// Clear every color's state but keep event listeners. Called by SceneTransition just before
+    /// a new scene loads, so switches and objectives start fresh in every scene.
+    /// </summary>
+    public static void ResetState()
+    {
+        active = new bool[ColorCount];
+        direction = new int[ColorCount];
+        heldInput = new int[ColorCount];
+        everActive = new bool[ColorCount];
+        anyDirection = 0;
+    }
+
     public static bool IsActive(SwitchColor color) => active[(int)color];
     public static int GetDirection(SwitchColor color) => direction[(int)color];
     public static int GetHeldInput(SwitchColor color) => heldInput[(int)color];

@@ -51,6 +51,7 @@ public class PlayerController : MonoBehaviour
     private static readonly int RollSpeedHash = Animator.StringToHash("RollSpeed");
 
     private Rigidbody2D rb;
+    private Collider2D bodyCollider;
     private Animator animator;
     private float baseGravityScale;
     private float jumpVelocity;
@@ -73,9 +74,68 @@ public class PlayerController : MonoBehaviour
     private Vector2 anchorLocal;         // our position in anchorBody's own (rotating) frame while locked
     private bool anchored;
 
+    // ---------------------------------------------------------------- used by doors / cutscenes
+
+    /// <summary>While true, move and jump input are ignored (physics still runs).</summary>
+    public bool ControlLocked { get; private set; }
+    public bool IsGrounded => isGrounded;
+    public LayerMask GroundLayers => groundLayers;
+    public Rigidbody2D Body => rb;
+
+    /// <summary>How far the pivot sits above the bottom of the collider.</summary>
+    public float BottomOffset =>
+        bodyCollider != null ? transform.position.y - bodyCollider.bounds.min.y : 0.5f;
+
+    /// <summary>Ignore (or stop ignoring) the player's move and jump input.</summary>
+    public void SetControlLocked(bool locked)
+    {
+        ControlLocked = locked;
+        moveInput = Vector2.zero;
+        jumpBufferTimer = 0f;
+        jumpCutRequested = false;
+        anchored = false;
+        anchorBody = null;
+    }
+
+    /// <summary>
+    /// Hand the player over to a script: input off, physics off (Kinematic), so the script can move
+    /// the body with rb.MovePosition and it passes through walls/floors.
+    /// </summary>
+    public void BeginScripted()
+    {
+        SetControlLocked(true);
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+    }
+
+    /// <summary>Back to normal physics. unlock = false keeps input off (e.g. while dropping in).</summary>
+    public void EndScripted(bool unlock = true)
+    {
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = baseGravityScale;
+        if (unlock) SetControlLocked(false);
+    }
+
+    /// <summary>Face left (-1) or right (+1), the same way moving that direction would.</summary>
+    public void Face(int direction)
+    {
+        if (direction == 0) return;
+        bool movingLeft = direction < 0;
+        bool mirror = spriteRollsRight ? movingLeft : !movingLeft;
+
+        Vector3 s = transform.localScale;
+        s.x = Mathf.Abs(s.x) * (mirror ? -1f : 1f);
+        transform.localScale = s;
+    }
+
+    // ----------------------------------------------------------------
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        bodyCollider = GetComponent<Collider2D>();
         animator = GetComponent<Animator>();
         CalculateJumpPhysics();
 
@@ -115,6 +175,13 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (ControlLocked)
+        {
+            moveInput = Vector2.zero;
+            UpdateAnimation();
+            return;
+        }
+
         moveInput = moveAction.action.ReadValue<Vector2>();
 
         if (jumpAction.action.WasPressedThisFrame())
@@ -142,22 +209,21 @@ public class PlayerController : MonoBehaviour
 
         // Mirror the object horizontally based on input direction; keep last facing when the stick is released
         if (Mathf.Abs(moveInput.x) > 0.1f)
-        {
-            bool movingLeft = moveInput.x < 0f;
-            bool mirror = spriteRollsRight ? movingLeft : !movingLeft;
-
-            Vector3 s = transform.localScale;
-            s.x = Mathf.Abs(s.x) * (mirror ? -1f : 1f);
-            transform.localScale = s;
-        }
+            Face(moveInput.x < 0f ? -1 : 1);
     }
 
     private void FixedUpdate()
     {
+        // A door (or other script) is moving the body directly
+        if (rb.bodyType != RigidbodyType2D.Dynamic) return;
+
         CheckGround();
         CheckWalls();
-        HandleHorizontal();
-        HandleJump();
+        if (!ControlLocked)
+        {
+            HandleHorizontal();
+            HandleJump();
+        }
         HandleGravity();
     }
 
