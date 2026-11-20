@@ -105,6 +105,10 @@ public class ObjectivesMenu : MonoBehaviour
 
     public bool IsUnlocked => unlocked;
     public bool IsOpen => isOpen;
+    public bool StartsUnlocked => startUnlocked;
+
+    /// <summary>Fires the moment the menu starts opening (true) or closing (false). Used by the HUD's Q key.</summary>
+    public event Action<bool> Toggled;
 
     private void Awake()
     {
@@ -204,6 +208,7 @@ public class ObjectivesMenu : MonoBehaviour
         isOpen = true;
         StopEverything();
         StartCoroutine(OpenRoutine());
+        Toggled?.Invoke(true);
     }
 
     /// <summary>Plays the Q press animation, then slides the paper away.</summary>
@@ -213,6 +218,7 @@ public class ObjectivesMenu : MonoBehaviour
         isOpen = false;
         StopEverything();
         StartCoroutine(CloseRoutine());
+        Toggled?.Invoke(false);
     }
 
     // ---------------------------------------------------------------- open / close
