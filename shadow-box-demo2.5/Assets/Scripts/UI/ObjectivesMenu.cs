@@ -103,6 +103,13 @@ public class ObjectivesMenu : MonoBehaviour
     private bool allShownFired;
     private Coroutine tickRoutine;
 
+    // Remembered across scene loads (wiped when Play starts), so Q keeps working when the
+    // player walks back into a room whose menu starts locked
+    private static bool unlockedThisSession;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics() => unlockedThisSession = false;
+
     public bool IsUnlocked => unlocked;
     public bool IsOpen => isOpen;
     public bool StartsUnlocked => startUnlocked;
@@ -163,7 +170,8 @@ public class ObjectivesMenu : MonoBehaviour
 
     private void Start()
     {
-        if (startUnlocked) Unlock();
+        if (unlockedThisSession) Unlock();          // player already unlocked it in an earlier room
+        else if (startUnlocked) Unlock(false);     // testing: doesn't count as the player unlocking it
     }
 
     private void Update()
@@ -179,9 +187,12 @@ public class ObjectivesMenu : MonoBehaviour
 
     // ---------------------------------------------------------------- public API (UnityEvents)
 
-    /// <summary>Lets Q open the menu from now on.</summary>
-    public void Unlock()
+    /// <summary>Lets Q open the menu from now on (in this room and every room after it).</summary>
+    public void Unlock() => Unlock(true);
+
+    private void Unlock(bool rememberForSession)
     {
+        if (rememberForSession) unlockedThisSession = true;
         if (unlocked) return;
         unlocked = true;
         // PlayerController enables the Player map; this just makes sure. Never disabled here.
@@ -189,11 +200,14 @@ public class ObjectivesMenu : MonoBehaviour
         onUnlocked?.Invoke();
     }
 
-    /// <summary>Unlock and show the menu straight away (end of the tutorial).</summary>
+    /// <summary>Unlock and show the menu straight away (end of the tutorial). Only opens the first time.</summary>
     public void UnlockAndOpen()
     {
+        // Coming back to the tutorial room: the tutorial chain replays silently and ends here,
+        // so only open the menu the very first time
+        bool firstTime = !unlockedThisSession;
         Unlock();
-        Open();
+        if (firstTime) Open();
     }
 
     public void Toggle()

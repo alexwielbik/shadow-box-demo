@@ -41,6 +41,12 @@ public class InstructionPaper : MonoBehaviour
 
     [Header("Show")]
     [SerializeField] private bool showOnStart = true;
+    [Tooltip("Once finished, never show again this play session (e.g. when the player comes back " +
+             "to this room). If it's asked to show again it skips straight to On Completed, so the " +
+             "next piece of the tutorial chain still gets its turn.")]
+    [SerializeField] private bool onlyOnce = true;
+    [Tooltip("Name used to remember this paper. Leave empty to use the GameObject's name.")]
+    [SerializeField] private string progressId = "";
     [Tooltip("Seconds after the scene starts before the paper appears.")]
     [SerializeField, Min(0f)] private float showDelay = 0.5f;
     [Tooltip("Where the paper starts, relative to where you placed it (UI units). " +
@@ -74,6 +80,8 @@ public class InstructionPaper : MonoBehaviour
     private bool shown;
 
     public bool IsShowing => shown && !finishing;
+    public string ProgressId => string.IsNullOrEmpty(progressId) ? name : progressId;
+    public bool AlreadyCompleted => onlyOnce && TutorialProgress.IsDone(ProgressId);
 
     private void Awake()
     {
@@ -115,6 +123,17 @@ public class InstructionPaper : MonoBehaviour
     {
         if (shown) return;
         shown = true;
+
+        // Already done earlier this session: stay hidden, but pass the baton to whatever comes next
+        if (AlreadyCompleted)
+        {
+            finishing = true;
+            if (group != null) group.alpha = 0f;
+            onCompleted?.Invoke();
+            gameObject.SetActive(false);
+            return;
+        }
+
         gameObject.SetActive(true);
         StartCoroutine(ShowRoutine());
     }
@@ -167,6 +186,8 @@ public class InstructionPaper : MonoBehaviour
         {
             finishing = true;
             listening = false;
+            // Remember it now, so leaving the room during the slide-out still counts
+            if (onlyOnce) TutorialProgress.MarkDone(ProgressId);
             StartCoroutine(HideRoutine());
         }
     }

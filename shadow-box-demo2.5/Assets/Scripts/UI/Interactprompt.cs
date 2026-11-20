@@ -18,6 +18,11 @@ public class InteractPrompt : MonoBehaviour
     [SerializeField, Min(0f)] private float showDelay = 0.3f;
     [Tooltip("Disappear (for good) the first time this switch flips.")]
     [SerializeField] private LeverSwitch hideWhenFlipped;
+    [Tooltip("Once dismissed, never show again this play session (e.g. when the player comes back " +
+             "to this room). It still fires On Hidden when its turn comes, so the tutorial chain carries on.")]
+    [SerializeField] private bool onlyOnce = true;
+    [Tooltip("Name used to remember this prompt. Leave empty to use \"<scene name>/<GameObject name>\".")]
+    [SerializeField] private string progressId = "";
 
     [Header("Pop")]
     [SerializeField, Min(0.01f)] private float showTime = 0.35f;
@@ -43,7 +48,11 @@ public class InteractPrompt : MonoBehaviour
     private bool visible;
     private bool dismissed;
     private bool waitingForPaper;
+    private bool skipped;       // dismissed in an earlier visit to this room
+    private bool finished;      // onHidden has fired
     private Coroutine routine;
+
+    private string ProgressId => string.IsNullOrEmpty(progressId) ? $"{gameObject.scene.name}/{name}" : progressId;
 
     private void Awake()
     {
@@ -55,6 +64,10 @@ public class InteractPrompt : MonoBehaviour
         baseScale = transform.localScale;
 
         SetVisuals(0f, 0f);   // hidden until told to show
+
+        // Checked in Awake: the paper before us can finish (or skip) during its own Start
+        if (onlyOnce && TutorialProgress.IsDone(ProgressId))
+            skipped = dismissed = true;
     }
 
     private void OnEnable()
@@ -74,12 +87,16 @@ public class InteractPrompt : MonoBehaviour
         if (hideWhenFlipped == null)
             Debug.LogWarning($"{name}: InteractPrompt has no switch in Hide When Flipped, so it will never go away.", this);
 
-        if (showAfter == null) Show();
+        if (showAfter == null)
+        {
+            if (skipped) FinishHidden();
+            else Show();
+        }
     }
 
     private void OnPaperDone()
     {
-        if (waitingForPaper) FinishHidden();
+        if (waitingForPaper || skipped) FinishHidden();
         else Show();
     }
 
@@ -98,6 +115,7 @@ public class InteractPrompt : MonoBehaviour
     {
         if (dismissed) return;
         dismissed = true;
+        if (onlyOnce) TutorialProgress.MarkDone(ProgressId);
 
         if (visible) { Restart(HideRoutine()); return; }
 
@@ -114,6 +132,8 @@ public class InteractPrompt : MonoBehaviour
 
     private void FinishHidden()
     {
+        if (finished) return;
+        finished = true;
         waitingForPaper = false;
         onHidden?.Invoke();
         gameObject.SetActive(false);
