@@ -53,7 +53,8 @@ public class LeverSwitch : MonoBehaviour, IInteractable
         SnapLever();
         // A switch that starts On turns its color on. Switches that start Off don't publish
         // anything, so the order Awake runs in can't let an Off switch cancel an On one.
-        if (isOn) SwitchChannels.SetActive(color, true);
+        // In a room the player has been to before, the saved state wins instead (Start snaps to it).
+        if (isOn && !SwitchChannels.IsRestoredRoom) SwitchChannels.SetActive(color, true);
     }
 
     private void OnEnable()

@@ -89,8 +89,11 @@ public class SceneTransition : MonoBehaviour
 
         yield return Fade(0f, 1f, FadeOutTime);
 
-        // Switch states (and which objectives are done) belong to one scene
-        SwitchChannels.ResetState();
+        // Switch states (and which objectives are done) belong to one room: save this room's,
+        // then load the next room's saved state (or a fresh one) before its switches wake up
+        string leavingScene = SceneManager.GetActiveScene().name;
+        SwitchChannels.SaveRoom(leavingScene);
+        SwitchChannels.EnterRoom(sceneName);
 
         PendingDoorId = doorId;
         AsyncOperation load = SceneManager.LoadSceneAsync(sceneName);
@@ -99,6 +102,7 @@ public class SceneTransition : MonoBehaviour
             Debug.LogError($"SceneTransition: couldn't load '{sceneName}'. " +
                            "Is it spelled right and added to File > Build Profiles > Scene List?");
             PendingDoorId = null;
+            SwitchChannels.EnterRoom(leavingScene);   // still here: put this room's state back
             yield return Fade(1f, 0f, FadeInTime);
             IsBusy = false;
             yield break;

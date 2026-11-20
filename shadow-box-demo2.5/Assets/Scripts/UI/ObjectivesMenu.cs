@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -107,8 +108,16 @@ public class ObjectivesMenu : MonoBehaviour
     // player walks back into a room whose menu starts locked
     private static bool unlockedThisSession;
 
+    // Which checkmarks the player has already seen, per room (scene name), so coming back to a
+    // room shows them ticked instead of replaying the animation
+    private static Dictionary<string, bool[]> seenTicks = new Dictionary<string, bool[]>();
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetStatics() => unlockedThisSession = false;
+    private static void ResetStatics()
+    {
+        unlockedThisSession = false;
+        seenTicks = new Dictionary<string, bool[]>();
+    }
 
     public bool IsUnlocked => unlocked;
     public bool IsOpen => isOpen;
@@ -155,6 +164,18 @@ public class ObjectivesMenu : MonoBehaviour
                 o.checkmark.enabled = false;
             }
             else Debug.LogWarning($"{name}: Objective {i} ({o.label}) has no Checkmark.", this);
+        }
+
+        // Back in a room we've been to: show the checkmarks already seen here as done
+        if (seenTicks.TryGetValue(gameObject.scene.name, out bool[] seen))
+        {
+            for (int i = 0; i < objectives.Length && i < seen.Length; i++)
+            {
+                if (!seen[i] || !SwitchChannels.HasEverBeenActive(objectives[i].color)) continue;
+                objectives[i].ticked = true;
+                SnapTicked(objectives[i]);
+            }
+            if (AllTicked() && objectives.Length > 0) allShownFired = true;
         }
     }
 
@@ -337,14 +358,16 @@ public class ObjectivesMenu : MonoBehaviour
         if (firstTickDelay > 0f) yield return new WaitForSeconds(firstTickDelay);
 
         bool first = true;
-        foreach (Objective o in objectives)
+        for (int i = 0; i < objectives.Length; i++)
         {
+            Objective o = objectives[i];
             if (o.ticked || !SwitchChannels.HasEverBeenActive(o.color)) continue;
 
             if (!first && tickInterval > 0f) yield return new WaitForSeconds(tickInterval);
             first = false;
 
             o.ticked = true;
+            RememberTick(i);
             StartCoroutine(AnimateTick(o));
             onObjectiveShown?.Invoke(o.color);
         }
@@ -355,6 +378,18 @@ public class ObjectivesMenu : MonoBehaviour
             onAllObjectivesShown?.Invoke();
         }
         tickRoutine = null;
+    }
+
+    private void RememberTick(int index)
+    {
+        string room = gameObject.scene.name;
+        if (!seenTicks.TryGetValue(room, out bool[] seen) || seen.Length != objectives.Length)
+        {
+            bool[] grown = new bool[objectives.Length];
+            if (seen != null) Array.Copy(seen, grown, Mathf.Min(seen.Length, grown.Length));
+            seenTicks[room] = seen = grown;
+        }
+        seen[index] = true;
     }
 
     private bool AllTicked()
