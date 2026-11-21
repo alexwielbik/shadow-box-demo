@@ -22,7 +22,7 @@ public class RoomGap
              "The collider opening matches the collider layer (3.5).")]
     [Min(0.5f)] public float width = 3f;
 
-    [Tooltip("Top/Bottom gaps only: put a LevelDoor in this gap. Its scene link is set on the door itself (under Room/Doors).")]
+    [Tooltip("Put a LevelDoor in this gap. Its scene link is set on the door itself (under Room/Doors).")]
     public bool door = true;
 
     [Tooltip("Name of the door. Other scenes point at it with their Target Door Id.")]
@@ -35,7 +35,7 @@ public class RoomGap
 ///   - the barrier colliders (floor, ceiling, walls) with matching openings,
 ///   - the CameraBounds box,
 ///   - the background paper wall, sized to everything the camera can see,
-///   - a LevelDoor in each Top/Bottom gap that asks for one.
+///   - a LevelDoor in each gap that asks for one.
 ///
 /// Put it on an empty GameObject at z = 0 (not inside a prefab). Move the GameObject to move the room.
 /// Change Size or Gaps and everything rebuilds. Everything under "Generated" is thrown away and remade,
@@ -172,7 +172,7 @@ public class RoomFrame : MonoBehaviour
         public List<RoomGap> gaps;
     }
 
-    /// <summary>Throw away the generated frame and build it again from the current settings.</summary>
+        /// <summary>Throw away the generated frame and build it again from the current settings.</summary>
     public void Rebuild()
     {
         if (Application.isPlaying) return;
@@ -199,7 +199,17 @@ public class RoomFrame : MonoBehaviour
         View v = GetView();
 
         Transform old = transform.Find(GeneratedName);
-        if (old != null) DestroyImmediate(old.gameObject);
+        if (old != null)
+        {
+            // Turn the shadows off first, so each one cleans up its own shadow object now.
+            // If they're still on, destroying the tree calls their OnDisable mid-teardown and
+            // Unity refuses their DestroyImmediate ("Cannot destroy GameObject while its parent
+            // is being activated or deactivated").
+            foreach (BorderShadow shadow in old.GetComponentsInChildren<BorderShadow>(true))
+                shadow.enabled = false;
+
+            DestroyImmediate(old.gameObject);
+        }
         Transform generated = NewChild(GeneratedName, transform);
 
         BuildBorders(generated, v);
@@ -480,7 +490,7 @@ public class RoomFrame : MonoBehaviour
 
         foreach (RoomGap g in gaps)
         {
-            if (!g.door || (g.side != RoomSide.Top && g.side != RoomSide.Bottom)) continue;
+            if (!g.door) continue;
             if (string.IsNullOrWhiteSpace(g.doorId))
             {
                 Debug.LogWarning($"{name}: a {g.side} gap wants a door but has no Door Id.", this);
@@ -506,15 +516,33 @@ public class RoomFrame : MonoBehaviour
                 door = go.AddComponent<LevelDoor>();
             }
 
-            // The door sits on the surface: the ceiling's underside or the floor's top
-            float surfaceY = g.side == RoomSide.Top
-                ? size.y * 0.5f - ColliderInset
-                : -size.y * 0.5f + ColliderInset;
-            door.transform.localPosition = new Vector3(g.center, surfaceY, 0f);
-            door.ConfigureFromFrame(
-                g.side == RoomSide.Top ? LevelDoor.DoorSide.Top : LevelDoor.DoorSide.Bottom,
-                g.width + 2f * ColliderGapGrow,
-                g.doorId);
+            // The door sits on the surface, in the middle of the gap:
+            // the ceiling's underside, the floor's top, or the inside face of a side wall
+            float inset = ColliderInset;
+            Vector3 local;
+            LevelDoor.DoorSide doorSide;
+            switch (g.side)
+            {
+                case RoomSide.Top:
+                    local = new Vector3(g.center, size.y * 0.5f - inset, 0f);
+                    doorSide = LevelDoor.DoorSide.Top;
+                    break;
+                case RoomSide.Bottom:
+                    local = new Vector3(g.center, -size.y * 0.5f + inset, 0f);
+                    doorSide = LevelDoor.DoorSide.Bottom;
+                    break;
+                case RoomSide.Left:
+                    local = new Vector3(-size.x * 0.5f + inset, g.center, 0f);
+                    doorSide = LevelDoor.DoorSide.Left;
+                    break;
+                default:
+                    local = new Vector3(size.x * 0.5f - inset, g.center, 0f);
+                    doorSide = LevelDoor.DoorSide.Right;
+                    break;
+            }
+
+            door.transform.localPosition = local;
+            door.ConfigureFromFrame(doorSide, g.width + 2f * ColliderGapGrow, g.doorId);
             EditorUtility.SetDirty(door);
         }
 

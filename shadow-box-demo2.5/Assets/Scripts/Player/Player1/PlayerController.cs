@@ -81,6 +81,7 @@ public class PlayerController : MonoBehaviour
     public bool IsGrounded => isGrounded;
     public LayerMask GroundLayers => groundLayers;
     public Rigidbody2D Body => rb;
+    public float MoveSpeed => moveSpeed;
 
     /// <summary>How far the pivot sits above the bottom of the collider.</summary>
     public float BottomOffset =>

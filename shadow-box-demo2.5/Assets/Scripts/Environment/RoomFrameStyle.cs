@@ -85,7 +85,7 @@ public class RoomFrameStyle : ScriptableObject
         UnityEditor.EditorApplication.delayCall += () =>
         {
             if (this == null) return;
-            foreach (RoomFrame frame in FindObjectsByType<RoomFrame>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            foreach (RoomFrame frame in FindObjectsByType<RoomFrame>(FindObjectsInactive.Include))
                 if (frame.Style == this) frame.RequestRebuild();
         };
     }
