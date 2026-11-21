@@ -4682,6 +4682,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LeverSwitch_Blue
       objectReference: {fileID: 0}
+    - target: {fileID: 6644470015249545604, guid: 983318e25add5e641845c57f50874230, type: 3}
+      propertyPath: m_CastShadows
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 8151399111477198907, guid: 983318e25add5e641845c57f50874230, type: 3}
       propertyPath: m_LocalPosition.x
       value: 19.989
@@ -4725,6 +4729,10 @@ PrefabInstance:
     - target: {fileID: 8347334763241383084, guid: 983318e25add5e641845c57f50874230, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8347334763241383084, guid: 983318e25add5e641845c57f50874230, type: 3}
+      propertyPath: m_CastShadows
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
