@@ -90,7 +90,7 @@ public class LevelDoor : MonoBehaviour
     [Tooltip("Arriving: how far outside the wall the player starts (hidden behind the border).")]
     [SerializeField, Min(0.5f)] private float startOutside = 1.5f;
     [Tooltip("Arriving: how far inside the wall the player walks before getting control back.")]
-    [SerializeField, Min(0.5f)] private float walkInDistance = 2.5f;
+    [SerializeField, Min(0.5f)] private float walkInDistance = 0.5f;
     [Tooltip("Arriving: pause after the scene appears before the player walks in.")]
     [SerializeField, Min(0f)] private float walkInDelay = 0.15f;
 

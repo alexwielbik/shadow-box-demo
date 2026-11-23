@@ -2004,6 +2004,68 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 461980282}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &479952143
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2005053395}
+    m_Modifications:
+    - target: {fileID: 2020069410421809384, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+      propertyPath: m_Name
+      value: PlatformSmall (5)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -22.57
+      objectReference: {fileID: 0}
+    - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 21.791
+      objectReference: {fileID: 0}
+    - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+--- !u!4 &479952144 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
+  m_PrefabInstance: {fileID: 479952143}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &511531509
 GameObject:
   m_ObjectHideFlags: 0
@@ -3134,7 +3196,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1181445802180476416, guid: a0181a2c5db6136468c9103f97907ef7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -18.69
+      value: -17.98
       objectReference: {fileID: 0}
     - target: {fileID: 1181445802180476416, guid: a0181a2c5db6136468c9103f97907ef7, type: 3}
       propertyPath: m_LocalPosition.y
@@ -4132,8 +4194,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelDoor
   doorId: Left
-  targetScene: 
-  targetDoorId: Bottom
+  targetScene: Level_03
+  targetDoorId: Right
   blockWhenNoTarget: 1
   side: 2
   openingWidth: 3.5
@@ -4153,7 +4215,7 @@ MonoBehaviour:
   walkSpeed: 0
   minWalkOutSpeed: 0.5
   startOutside: 1.5
-  walkInDistance: 2.5
+  walkInDistance: 0.5
   walkInDelay: 0.15
   arriveHereWhenTesting: 0
 --- !u!61 &1071670149
@@ -4404,7 +4466,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4104722453387400530, guid: bbc13327bd38ba640be7042ade79c974, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -18.8
+      value: -18.089998
       objectReference: {fileID: 0}
     - target: {fileID: 4104722453387400530, guid: bbc13327bd38ba640be7042ade79c974, type: 3}
       propertyPath: m_LocalPosition.y
@@ -4527,7 +4589,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -22.76
+      value: -21.99
       objectReference: {fileID: 0}
     - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
       propertyPath: m_LocalPosition.y
@@ -4597,7 +4659,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4787481226027699686, guid: 6e478fccf60d0e54282241e1c1691f01, type: 3}
       propertyPath: endOffset.x
-      value: -2.3007412
+      value: -1.2406445
       objectReference: {fileID: 0}
     - target: {fileID: 4787481226027699686, guid: 6e478fccf60d0e54282241e1c1691f01, type: 3}
       propertyPath: endOffset.y
@@ -4613,7 +4675,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5508734836242496809, guid: 6e478fccf60d0e54282241e1c1691f01, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -19.12
+      value: -16.61
       objectReference: {fileID: 0}
     - target: {fileID: 5508734836242496809, guid: 6e478fccf60d0e54282241e1c1691f01, type: 3}
       propertyPath: m_LocalPosition.y
@@ -4991,7 +5053,7 @@ MonoBehaviour:
   walkSpeed: 0
   minWalkOutSpeed: 0.5
   startOutside: 1.5
-  walkInDistance: 2.5
+  walkInDistance: 0.5
   walkInDelay: 0.15
   arriveHereWhenTesting: 0
 --- !u!61 &1484847426
@@ -5359,7 +5421,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -20.44
+      value: -20.42
       objectReference: {fileID: 0}
     - target: {fileID: 5197325788160329956, guid: 8b43f59b689b76541915c91aeb3c8cec, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5703,7 +5765,7 @@ MonoBehaviour:
   walkSpeed: 0
   minWalkOutSpeed: 0.5
   startOutside: 1.5
-  walkInDistance: 2.5
+  walkInDistance: 0.5
   walkInDelay: 0.15
   arriveHereWhenTesting: 0
 --- !u!61 &1653194012
@@ -6763,6 +6825,7 @@ Transform:
   - {fileID: 181858708}
   - {fileID: 910348454}
   - {fileID: 1180745856}
+  - {fileID: 479952144}
   - {fileID: 1622991207}
   - {fileID: 1252777133}
   - {fileID: 1863530483}
@@ -6875,7 +6938,7 @@ MonoBehaviour:
   walkSpeed: 0
   minWalkOutSpeed: 0.5
   startOutside: 1.5
-  walkInDistance: 2.5
+  walkInDistance: 0.5
   walkInDelay: 0.15
   arriveHereWhenTesting: 0
 --- !u!61 &2101975187
